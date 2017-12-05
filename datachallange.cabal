@@ -1,0 +1,90 @@
+name:                datachallange
+version:             0.1.0.0
+-- synopsis:
+-- description:
+homepage:            https://github.com/githubuser/datachallange#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Mateusz Curylo 
+maintainer:          mhcurylo@gmail.com 
+copyright:           2017 Mateusz Curylo 
+category:            Web
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  other-modules:       Http.Servant
+  exposed-modules:     Type.API, Type.Date, Type.Play, Type.Scores, Http.Server, App, Process.File
+  build-depends:       base >= 4.7 && < 5
+                     , aeson
+                     , http-types
+                     , http-client
+                     , url
+                     , wai
+                     , warp
+                     , conduit-combinators
+                     , conduit-extra
+                     , stm-conduit
+                     , http-conduit
+                     , bytestring
+                     , attoparsec
+                     , QuickCheck
+                     , servant
+                     , servant-server
+                     , text
+                     , time
+                     , containers
+                     , mtl
+                     , http-api-data
+  default-language:    Haskell2010
+
+
+executable datachallange-exe
+  hs-source-dirs:      app
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , datachallange
+  default-language:    Haskell2010
+
+executable datachallange-cmd
+  hs-source-dirs:      cmd
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , datachallange
+                     , containers
+                     , conduit-combinators
+                     , attoparsec
+                     , text
+                     , bytestring
+                     , stm-conduit
+                     , async
+                     , stm-chans
+                     , stm
+  default-language:    Haskell2010
+
+
+test-suite datachallange-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  other-modules:       Http.ServerSpec, Type.DateSpec
+  build-depends:       base
+                     , datachallange
+                     , hspec
+                     , hspec-wai
+                     , hspec-wai-json
+                     , QuickCheck
+                     , quickcheck-instances
+                     , bytestring
+                     , time
+                     , text
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/githubuser/datachallange
