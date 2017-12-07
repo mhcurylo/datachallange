@@ -33,6 +33,8 @@ library
                      , QuickCheck
                      , servant
                      , servant-server
+                     , vector
+                     , vector-algorithms
                      , text
                      , time
                      , containers
@@ -79,6 +81,7 @@ test-suite datachallange-test
                      , hspec-wai-json
                      , QuickCheck
                      , quickcheck-instances
+                     , criterion
                      , bytestring
                      , time
                      , text

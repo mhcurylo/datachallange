@@ -29,7 +29,7 @@ type ServerState = MVar Scores
 
 server :: IO (Server DevDataChallengeAPI)
 server = do
-  serverState <- liftIO $ newMVar scoresEmpty
+  serverState <- liftIO $ newMVar emptyScores
   return $inputEP serverState
        :<|> dateEP serverState
 
