@@ -11,7 +11,7 @@ module Type.API (
 ) where
 
 import Type.Date (Date)
-import Type.Scores (Top10, emptyTop10)
+import Type.Top10 (Top10, emptyTop10)
 import Data.Aeson (FromJSON, parseJSON)
 import Data.Aeson.TH (deriveJSON, defaultOptions)
 

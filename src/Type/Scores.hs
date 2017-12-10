@@ -2,56 +2,25 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Type.Scores (
-  SimpleScore,
-  simpleScore,
-  Scores,
-  sScores,
-  sDate,
-  Top10,
-  top10,
-  emptyTop10,
+  Scores(..),
+  PlayerScores(..),
+  DayScores(..),
+  PlayerIds(..),
   emptyScores,
   emptyScoresFrom,
   scoresInsert,
-  latestScores,
   updateDate 
 ) where
 
 import Type.Date
 import Type.Play
-import Data.List (foldl')
 import Data.ByteString (ByteString)
 import Data.Monoid
-import Data.Functor
-import Data.Text.Encoding (decodeUtf8)
 import Control.Monad
-import Data.Aeson (ToJSON, toJSON, object, (.=))
 import qualified Data.Vector as V
 import qualified Data.Vector.Algorithms.Intro as V
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
-
-newtype SimpleScore = SimpleScore {
-  simpleScore :: (Score, Player)
-} deriving (Show, Eq, Ord)
-
-instance ToJSON SimpleScore where 
-  toJSON (SimpleScore ((Score s), (Player p))) = object [ decodeUtf8 p .= s ]
-
-newtype Top10 = Top10 {
-  top10 :: [SimpleScore]
-} deriving (Show, Eq)
-
-emptyTop10 :: Top10
-emptyTop10 = Top10 $ []
-
-instance ToJSON Top10 where
-  toJSON (Top10 s) = object [ "top10" .= s]
-
-latestScores :: Scores -> Top10
-latestScores  (Scores dat (PlayerIds _ itp _) (DayScores dsm)) = Top10 $ V.toList . V.take 10 . V.map SimpleScore $  V.zip (V.map Score relevantVectors) (V.map Player itp)
-  where
-  relevantVectors = playerScores . foldl' mappend mempty . M.elems . fst  $ M.split (addDays 10 dat) dsm
 
 maxPlayers = 100000
 maxDays = 100
@@ -68,7 +37,6 @@ instance Monoid PlayerScores where
 
 insertPlayerScore :: Int -> Score -> PlayerScores -> PlayerScores
 insertPlayerScore i (Score s) (PlayerScores ps) = PlayerScores $ ps V.// [(i,s)]
-
 
 newtype DayScores = DayScores {
   dayScores :: M.Map Date PlayerScores

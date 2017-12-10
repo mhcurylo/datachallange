@@ -11,6 +11,7 @@ module Http.Server (
 import           Http.Servant
 import           Type.API
 import           Type.Scores
+import           Type.Top10
 import           Process.File
 import           Data.Proxy
 import           Data.Text                  (Text)
@@ -39,7 +40,8 @@ inputEP state fs = do
   scores <- liftIO $ takeMVar state 
   newScores <- runResourceT $ runCConduit $ processHttp scores requests 
   liftIO $ putMVar state newScores
-  return $ latestScores newScores
+  top10 <- liftIO $ latestScores newScores
+  return top10
 
 dateEP :: ServerState -> Maybe Date -> Handler Top10
 dateEP state current = case current of
@@ -47,7 +49,8 @@ dateEP state current = case current of
     scores <- liftIO $ takeMVar state 
     let newScores = updateDate d scores
     liftIO $ putMVar state newScores
-    return $ latestScores newScores
+    top10 <- liftIO $ latestScores newScores
+    return top10
   Nothing -> fail "I need a date, OK?"
 
 app :: IO Application

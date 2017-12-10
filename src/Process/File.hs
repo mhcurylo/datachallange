@@ -12,7 +12,7 @@ import           Data.Text
 import           Data.Void (Void)
 import           Type.Date (Date)
 import           Type.Play (Play, playParser, playParserEOL, isPlayOld)
-import           Type.Scores (Scores(..), scoresInsert, emptyScoresFrom, latestScores, Top10) 
+import           Type.Scores (Scores(..), scoresInsert, emptyScoresFrom) 
 import           Network.HTTP.Simple
 import           Control.Monad.IO.Class (liftIO)
 
@@ -28,8 +28,8 @@ processHttp scores fs = sequenceSources (fmap (\f -> httpSource f getResponseBod
                .| concatC
                .| sinkFold scoresInsert scores id
 
-scoreFiles :: (MonadResource m, MonadThrow m) => Date -> [String] -> ConduitM () Void m Top10
+scoreFiles :: (MonadResource m, MonadThrow m) => Date -> [String] -> ConduitM () Void m Scores
 scoreFiles d fs = sequenceSources (fmap (\f -> sourceFileBS f .| parseFile) fs) 
                .| filterE (isPlayOld d)
                .| concatC
-               .| sinkFold scoresInsert (emptyScoresFrom d) latestScores
+               .| sinkFold scoresInsert (emptyScoresFrom d) id

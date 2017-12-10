@@ -7,6 +7,7 @@ import Process.File
 import Type.Date
 import Type.Play
 import Type.Scores
+import Type.Top10
 import System.Environment (getArgs)
 import Data.Attoparsec.Text (parseOnly)
 import Conduit
@@ -22,4 +23,5 @@ main :: IO ()
 main = do
   a <- getArgs
   r <- runResourceT $ runCConduit $ scoreFiles testDate a 
-  print . show $ r
+  t10 <- latestScores r
+  print . show $ t10

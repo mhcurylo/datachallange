@@ -32,7 +32,7 @@ defaultDate :: Date
 defaultDate = Date $ fromGregorian 2010 01 01
 
 testDate :: Date
-testDate = Date $ fromGregorian 2017 01 19
+testDate = Date $ fromGregorian 2017 01 01
 
 addDays :: Integer -> Date -> Date
 addDays n (Date d) = Date $ T.addDays n d   
