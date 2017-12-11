@@ -5,6 +5,7 @@ module Type.Date (
   dateParser,
   defaultDate,
   testDate,
+  dateFromGregorian,
   addDays,
   removeDays
 ) where
@@ -28,11 +29,14 @@ newtype Date = Date {
 parseDate :: Text -> Either Text Date
 parseDate = left pack . parseOnly dateParser . encodeUtf8
 
+dateFromGregorian :: Integer -> Int -> Int -> Date
+dateFromGregorian y m d = Date $ fromGregorian y m d
+
 defaultDate :: Date
-defaultDate = Date $ fromGregorian 2010 01 01
+defaultDate = dateFromGregorian 2010 01 01
 
 testDate :: Date
-testDate = Date $ fromGregorian 2017 01 01
+testDate = dateFromGregorian 2017 01 01
 
 addDays :: Integer -> Date -> Date
 addDays n (Date d) = Date $ T.addDays n d   

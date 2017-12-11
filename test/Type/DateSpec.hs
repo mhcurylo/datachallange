@@ -4,7 +4,7 @@ module Type.DateSpec (main, spec) where
 
 import Type.Date 
 import Test.Hspec 
-import Data.Time
+import Data.Time (Day)
 import Data.Text
 import Test.QuickCheck
 import Test.QuickCheck.Instances
@@ -30,6 +30,11 @@ prop_leftIfNotADate :: Text -> Bool
 prop_leftIfNotADate day = case (parseDate day) of
   Right _ -> False
   Left _ -> True
+
+prop_addDays_removeDays_id :: Day -> Day -> Bool
+prop_addDays_removeDays_id d = dat == (addDays 10 . removeDays 10) dat
+  where 
+  dat = Date d
 
 spec :: Spec
 spec = do

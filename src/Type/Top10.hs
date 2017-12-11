@@ -51,4 +51,3 @@ latestScores  scores@(Scores _ (PlayerIds _ itp _) _) = do
   V.partialSortBy (flip (comparing fst)) relevantScores 10
   v <- V.freeze relevantScores
   return $ Top10 . V.toList . V.map (SimpleScore . (Score *** Player)) . V.take 10$ v 
---  return $ Top10 . V.toList . V.take 10 $ top10
