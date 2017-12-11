@@ -1,11 +1,11 @@
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
 module Type.Date (
-  Date(..),
+  Date,
   parseDate,
   dateParser,
   defaultDate,
   testDate,
-  dateFromGregorian,
   addDays,
   removeDays
 ) where
@@ -13,24 +13,35 @@ module Type.Date (
 import Data.Word (Word8)
 import Prelude hiding (take)
 import Data.Time (Day(..), fromGregorianValid, fromGregorian)
-import qualified Data.Time as T
 import Data.Text (Text, pack)
-import Data.Text.Encoding (decodeUtf8, encodeUtf8)
+import Data.Text.Encoding (encodeUtf8)
 import Data.ByteString (ByteString)
 import Data.ByteString.Char8 (readInteger, readInt)
-import Data.Attoparsec.ByteString (Parser, parseOnly, take, satisfy, word8) 
+import Data.Attoparsec.ByteString (Parser, parseOnly, take, word8) 
+import Test.QuickCheck (Arbitrary)
 import Web.HttpApiData (FromHttpApiData, parseQueryParam)
 import Control.Arrow (left)
 
 newtype Date = Date {
-  date :: Day 
-} deriving (Eq, Ord, Show)
+  date :: Integer 
+} deriving (Eq, Ord, Arbitrary)
+
+printLogDate :: Date -> String
+printLogDate (Date i) = logDate 
+  where
+  (y1:y2:y3:y4:_:m1:m2:_:d1:d2:[]) = show (ModifiedJulianDay i)
+  logDate = d1:d2:'-':m1:m2:'-':y1:y2:y3:y4:[]
 
 parseDate :: Text -> Either Text Date
 parseDate = left pack . parseOnly dateParser . encodeUtf8
 
+instance Show Date where
+  show = printLogDate
+
 dateFromGregorian :: Integer -> Int -> Int -> Date
-dateFromGregorian y m d = Date $ fromGregorian y m d
+dateFromGregorian y m d = Date $ i
+  where 
+  (ModifiedJulianDay i) = fromGregorian y m d
 
 defaultDate :: Date
 defaultDate = dateFromGregorian 2010 01 01
@@ -39,10 +50,10 @@ testDate :: Date
 testDate = dateFromGregorian 2017 01 01
 
 addDays :: Integer -> Date -> Date
-addDays n (Date d) = Date $ T.addDays n d   
+addDays n (Date i) = Date $ i + n   
 
 removeDays :: Integer -> Date -> Date
-removeDays n (Date (ModifiedJulianDay jd)) = Date . ModifiedJulianDay $ (n + jd)
+removeDays n (Date i) = Date $ i - n 
 
 takeInt :: Int -> Parser Int
 takeInt n = do
@@ -69,7 +80,7 @@ dateParser = do
   _ <- dash 
   y <- takeInteger 4
   case fromGregorianValid y m d of
-     Just day -> return . Date $ day
+     Just (ModifiedJulianDay i) -> return $ Date i 
      Nothing  -> fail "Invalid date"
 
 instance FromHttpApiData Date where

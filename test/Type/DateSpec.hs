@@ -12,32 +12,28 @@ import Test.QuickCheck.Instances
 main :: IO ()
 main = hspec spec
 
-prop_rightOnProperDate :: Day -> Bool
-prop_rightOnProperDate day = (parseDate urlDate) == (Right $ Date day) 
-  where
-  (y1:y2:y3:y4:_:m1:m2:_:d1:d2:[]) = show day
-  urlDate = pack $ d1:d2:'-':m1:m2:'-':y1:y2:y3:y4:[]
+prop_praseLogPrintLog_identity :: Date -> Bool
+prop_praseLogPrintLog_identity d = (parseDate .  pack . show $ d) == (Right d)
 
-prop_leftOnInvalidDate :: Day -> Bool
-prop_leftOnInvalidDate day = case parseDate urlDate of
+prop_leftOnInvalidDate :: Date -> Bool
+prop_leftOnInvalidDate d = case parseDate urlDate of
   Right _ -> False
   Left _ -> True
   where
-  (y1:y2:y3:y4:_:m1:m2:_:d1:d2:[]) = show day
+  (d1:d2:'-':m1:m2:'-':y1:y2:y3:y4:[]) = show d
   urlDate = pack $ d1:d2:'-':'2':m2:'-':y1:y2:y3:y4:[]
 
 prop_leftIfNotADate :: Text -> Bool
-prop_leftIfNotADate day = case (parseDate day) of
+prop_leftIfNotADate d = case (parseDate d) of
   Right _ -> False
   Left _ -> True
 
-prop_addDays_removeDays_id :: Day -> Day -> Bool
-prop_addDays_removeDays_id d = dat == (addDays 10 . removeDays 10) dat
-  where 
-  dat = Date d
+prop_addDays_removeDays_identity :: Date -> Integer -> Bool
+prop_addDays_removeDays_identity d i = d == (addDays i . removeDays i) d
 
 spec :: Spec
 spec = do
-    it "Parses a legal date" $ property prop_rightOnProperDate
+    it "Parses a legal date" $ property prop_praseLogPrintLog_identity
     it "Returns left on invalid date" $ property prop_leftOnInvalidDate
     it "Returns left if not a date" $ property prop_leftIfNotADate
+    it "Adds and removes days" $ property prop_addDays_removeDays_identity
