@@ -16,7 +16,17 @@ cabal-version:       >=1.10
 library
   hs-source-dirs:      src
   other-modules:       Http.Servant
-  exposed-modules:     Type.API, Type.Date, Type.Play, Type.Scores, Type.Top10, Http.Server, App, Process.File
+  exposed-modules:     Type.API
+                     , Type.Date
+                     , Type.Score
+                     , Type.Player
+                     , Type.Play
+                     , Type.PlayerIds
+                     , Type.Scores
+                     , Type.Top10
+                     , Http.Server
+                     , Process.File
+                     , App
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , http-types
@@ -28,6 +38,7 @@ library
                      , conduit-extra
                      , stm-conduit
                      , http-conduit
+                     , hashable
                      , bytestring
                      , attoparsec
                      , QuickCheck
@@ -38,6 +49,7 @@ library
                      , text
                      , time
                      , containers
+                     , unordered-containers
                      , mtl
                      , http-api-data
                      , primitive
@@ -74,7 +86,12 @@ test-suite datachallange-test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
   main-is:             Spec.hs
-  other-modules:       Http.ServerSpec, Type.DateSpec
+  other-modules:       Http.ServerSpec 
+                     , Type.DateSpec
+                     , Type.PlayerSpec
+                     , Type.ScoreSpec
+                     , Type.PlaySpec
+                     , Type.PlayerIdsSpec
   build-depends:       base
                      , datachallange
                      , hspec
@@ -83,6 +100,9 @@ test-suite datachallange-test
                      , QuickCheck
                      , quickcheck-instances
                      , criterion
+                     , containers
+                     , unordered-containers
+                     , attoparsec
                      , bytestring
                      , time
                      , text

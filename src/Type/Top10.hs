@@ -8,8 +8,11 @@ module Type.Top10 (
   latestScores,
 ) where
 
+
 import Type.Date
 import Type.Play
+import Type.Score
+import Type.Player
 import Type.Scores
 import Data.List (foldl')
 import Data.ByteString (ByteString)
@@ -30,7 +33,7 @@ newtype SimpleScore = SimpleScore {
 } deriving (Show, Eq, Ord)
 
 instance ToJSON SimpleScore where 
-  toJSON (SimpleScore ((Score s), (Player p))) = object [ decodeUtf8 p .= s ]
+  toJSON (SimpleScore (s, p)) = object [ decodeUtf8 (player p) .= (score s) ]
 
 newtype Top10 = Top10 {
   top10 :: [SimpleScore]
@@ -42,7 +45,7 @@ emptyTop10 = Top10 $ []
 instance ToJSON Top10 where
   toJSON (Top10 s) = object [ "top10" .= s]
 
-lastTenDays :: Scores -> V.Vector Int
+lastTenDays :: Scores -> V.Vector Score
 lastTenDays  (Scores d (PlayerIds _ itp _) (DayScores dsm)) = playerScores . foldl' mappend mempty . M.elems . fst  $ M.split (addDays 1000 d) dsm
 
 latestScores :: PrimMonad m => Scores -> m Top10
@@ -50,4 +53,4 @@ latestScores  scores@(Scores _ (PlayerIds _ itp _) _) = do
   relevantScores <- V.thaw $ V.zip (lastTenDays scores) itp
   V.partialSortBy (flip (comparing fst)) relevantScores 10
   v <- V.freeze relevantScores
-  return $ Top10 . V.toList . V.map (SimpleScore . (Score *** Player)) . V.take 10$ v 
+  return $ Top10 . V.toList . V.map SimpleScore . V.take 10$ v 

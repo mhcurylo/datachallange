@@ -14,6 +14,8 @@ module Type.Scores (
 
 import Type.Date
 import Type.Play
+import Type.Score
+import Type.Player 
 import Data.ByteString (ByteString)
 import Data.Monoid
 import Control.Monad
@@ -26,7 +28,7 @@ maxPlayers = 100000
 maxDays = 100
 
 newtype PlayerScores = PlayerScores {
-  playerScores :: V.Vector Int
+  playerScores :: V.Vector Score
 } deriving (Show, Eq, Ord)
 
 emptyPlayerScores = PlayerScores $ V.replicate maxPlayers 0
@@ -36,7 +38,7 @@ instance Monoid PlayerScores where
   mappend (PlayerScores x) (PlayerScores y) = PlayerScores $ V.zipWith (+) x y
 
 insertPlayerScore :: Int -> Score -> PlayerScores -> PlayerScores
-insertPlayerScore i (Score s) (PlayerScores ps) = PlayerScores $ ps V.// [(i,s)]
+insertPlayerScore i s (PlayerScores ps) = PlayerScores $ ps V.// [(i,s)]
 
 newtype DayScores = DayScores {
   dayScores :: M.Map Date PlayerScores
@@ -52,17 +54,17 @@ insertPlayerScoreMaybe i s mps = Just $ insertPlayerScore i s $ case mps of
   Nothing -> emptyPlayerScores
 
 data PlayerIds = PlayerIds {
-    playerToId :: M.Map ByteString Int
-  , idToPlayer :: V.Vector ByteString
+    playerToId :: M.Map Player Int
+  , idToPlayer :: V.Vector Player
   , freeIds  :: [Int] 
 } deriving (Show, Eq, Ord)
 
 insertPlayerName :: Player -> PlayerIds -> (PlayerIds, Int)
-insertPlayerName (Player p) ids@(PlayerIds pti itp (x:xs)) = case M.lookup p pti of
+insertPlayerName p ids@(PlayerIds pti itp (x:xs)) = case M.lookup p pti of
   Just id -> (ids, id)
   Nothing -> (PlayerIds (M.insert p x pti) (itp V.// [(x, p)]) xs, x) 
 
-emptyPlayerIds = PlayerIds M.empty (V.replicate maxPlayers ("" :: ByteString)) [1..maxPlayers]
+emptyPlayerIds = PlayerIds M.empty (V.replicate maxPlayers playerZero) [1..maxPlayers]
 
 data Scores = Scores {
     sDate :: !Date
