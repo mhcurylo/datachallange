@@ -6,6 +6,8 @@ import Test.QuickCheck
 import Type.Player
 import Type.PlayerIds
 import Data.List
+import qualified Data.Vector as V
+import qualified Data.Set as S
 
 main :: IO ()
 main = hspec spec
@@ -18,7 +20,24 @@ prop_inserting_player_is_idempotent p = insertp emptyPlayerIds == (insertp . ins
 prop_first_player_gets_num0 :: Player -> Bool
 prop_first_player_gets_num0 p = 0 == (snd . playerId p $ emptyPlayerIds)
 
+prop_players_get_consequent_ids :: [Player] -> Bool
+prop_players_get_consequent_ids ps = all (uncurry (==)) $ zip [0..] cpsIds 
+  where
+  cps = S.toList . S.fromList $ ps
+  pids = foldl' (flip insertPlayer) emptyPlayerIds cps 
+  cpsIds = map (\p -> snd . playerId p $ pids) cps
+
+prop_toVector_preserves_ids :: [Player] -> Bool
+prop_toVector_preserves_ids ps = cps == V.toList pidsv  
+  where
+  cps = S.toList . S.fromList $ ps
+  pidsv = toPlayerIdsVector $ foldl' (flip insertPlayer) emptyPlayerIds cps 
+  
+
 spec :: Spec
 spec = do
-  it "Inserting player is idempotent" $ prop_inserting_player_is_idempotent
-  it "Inserting one player gets him id 0" $ prop_first_player_gets_num0 
+  it "Inserting player is idempotent" $ property prop_inserting_player_is_idempotent
+  it "Inserting one player gets him id 0" $ property prop_first_player_gets_num0 
+  it "Players get consequent ids" $ property prop_players_get_consequent_ids
+  it "ToVector assigns Players to their ids" $ property prop_toVector_preserves_ids
+
