@@ -15,6 +15,7 @@ import Prelude hiding (take)
 import Data.Time (Day(..), fromGregorianValid, fromGregorian)
 import Data.Text (Text, pack)
 import Data.Text.Encoding (encodeUtf8)
+import Data.Hashable
 import Data.ByteString (ByteString)
 import Data.ByteString.Char8 (readInteger, readInt)
 import Data.Attoparsec.ByteString (Parser, parseOnly, take, word8) 
@@ -24,7 +25,7 @@ import Control.Arrow (left)
 
 newtype Date = Date {
   date :: Integer 
-} deriving (Eq, Ord, Arbitrary)
+} deriving (Eq, Ord, Arbitrary, Hashable, Enum)
 
 printLogDate :: Date -> String
 printLogDate (Date i) = logDate 

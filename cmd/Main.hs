@@ -23,5 +23,5 @@ main :: IO ()
 main = do
   a <- getArgs
   r <- runResourceT $ runCConduit $ scoreFiles testDate a 
-  t10 <- latestScores r
+  let t10 = latestScores r
   print . show $ t10

@@ -2,14 +2,13 @@
 {-# LANGUAGE OverloadedStrings        #-}
 
 module Type.Score (
-  Score,
-  score,
+  Score(..),
   scoreParser
 ) where
 
 import Data.ByteString.Char8 (readInt)
 import Data.Attoparsec.ByteString (Parser, parseOnly, takeWhile1) 
-import Test.QuickCheck (Arbitrary, arbitrarySizedNatural, arbitrary)
+import Test.QuickCheck (Arbitrary, arbitrary, choose)
 
 newtype Score = Score {
   score :: Int
@@ -20,7 +19,7 @@ instance Show Score where
   
 instance Arbitrary Score where
   arbitrary = do
-    n <- arbitrarySizedNatural
+    n <- choose (0, 20000)
     return $ Score n
 
 isDigit w = w >= 48 && w <= 57

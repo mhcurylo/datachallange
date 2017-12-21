@@ -23,6 +23,9 @@ library
                      , Type.Play
                      , Type.PlayerIds
                      , Type.Scores
+                     , Type.ScoreIndex
+                     , Type.ShortEvent
+                     , Type.ShortEvents
                      , Type.Top10
                      , Http.Server
                      , Process.File
@@ -92,6 +95,8 @@ test-suite datachallange-test
                      , Type.ScoreSpec
                      , Type.PlaySpec
                      , Type.PlayerIdsSpec
+                     , Type.ShortEventSpec
+                     , Type.ShortEventsSpec
   build-depends:       base
                      , datachallange
                      , hspec

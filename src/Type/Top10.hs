@@ -2,10 +2,10 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Type.Top10 (
-  Top10,
-  top10,
-  emptyTop10,
-  latestScores,
+    Top10
+  , top10
+  , emptyTop10
+  , latestScores
 ) where
 
 
@@ -14,18 +14,22 @@ import Type.Play
 import Type.Score
 import Type.Player
 import Type.Scores
-import Data.List (foldl')
+import Type.ShortEvents
+import Type.ScoreContainer
+import Type.ScoreIndex
+import Data.List (foldl', sort)
+import Data.Foldable (toList)
 import Data.ByteString (ByteString)
 import Data.Text.Encoding (decodeUtf8)
 import Control.Monad
 import Control.Monad.Primitive
 import Data.Aeson (ToJSON, toJSON, object, (.=))
 import qualified Data.Vector as V
-import qualified Data.Vector.Unboxed.Mutable as VM
 import qualified Data.Vector.Algorithms.Intro as V
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
-import Control.Arrow ((***))
+import Control.Arrow ((***), first)
+import Control.Applicative
 import Data.Ord 
 
 newtype SimpleScore = SimpleScore {
@@ -45,12 +49,11 @@ emptyTop10 = Top10 $ []
 instance ToJSON Top10 where
   toJSON (Top10 s) = object [ "top10" .= s]
 
-lastTenDays :: Scores -> V.Vector Score
-lastTenDays  (Scores d (PlayerIds _ itp _) (DayScores dsm)) = playerScores . foldl' mappend mempty . M.elems . fst  $ M.split (addDays 1000 d) dsm
+lastTenDays :: Scores -> ShortEvents
+lastTenDays  (Scores d _ si) = concatToShortEvents (map (flip getScores $ si) [d..(addDays 10 d)])
 
-latestScores :: PrimMonad m => Scores -> m Top10
-latestScores  scores@(Scores _ (PlayerIds _ itp _) _) = do
-  relevantScores <- V.thaw $ V.zip (lastTenDays scores) itp
-  V.partialSortBy (flip (comparing fst)) relevantScores 10
-  v <- V.freeze relevantScores
-  return $ Top10 . V.toList . V.map SimpleScore . V.take 10$ v 
+fromShortEvent :: V.Vector Player -> ShortEvent -> SimpleScore
+fromShortEvent pids = SimpleScore . swap . first (flip . fromIntegral  $ pids) . decompress 
+
+latestScores :: Scores -> Top10
+latestScores  scores = take 10 . sort . map fromShortEvent . toList . shortEvents $ latestTenDays scores 
