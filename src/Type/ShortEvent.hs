@@ -2,6 +2,7 @@ module Type.ShortEvent (
     ShortEvent
   , compress
   , decompress
+  , decodeScore
   , add
   , withIndex
   , emptyShortEvent

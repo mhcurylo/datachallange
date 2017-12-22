@@ -2,7 +2,7 @@ module Type.ScoreContainer (
     ScoreContainer
   , emptyScoreContainer
   , insertPIDScore
-  , concatToShortEvents
+  , concatToScoreVector
 ) where
 
 import Type.PlayerIds
@@ -10,7 +10,10 @@ import Type.Score
 import Type.ShortEvent
 import Type.ShortEvents
 import Control.Arrow ((&&&))
+import Data.Foldable (toList)
 import Data.Monoid
+import Data.List (concatMap)
+import qualified Data.Vector as V
 import qualified Data.Sequence as S
 
 bufferLength = 4096
@@ -33,5 +36,5 @@ insertPIDScore (p, s) (ScoreContainer b e) = if S.length (shortEvents b') > buff
 toShortEvents :: ScoreContainer -> ShortEvents
 toShortEvents (ScoreContainer b e) = b <> e
 
-concatToShortEvents :: [ScoreContainer] -> ShortEvents
-concatToShortEvents = mconcat . uncurry (++) . unzip . map (selBuffer &&& selShortEvents)
+concatToScoreVector :: [ScoreContainer] -> V.Vector Score 
+concatToScoreVector = toVectorScore . mconcat . uncurry (++) . unzip . map (selBuffer &&& selShortEvents)

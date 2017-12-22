@@ -1,11 +1,13 @@
 module Type.ShortEvents (
     ShortEvents
   , shortEvents  
+  , toVectorScore
   , insertShortEvent
   , compressShortEvents
   , emptyShortEvents
 ) where 
 
+import Type.Score
 import Type.ShortEvent 
 import Data.Monoid
 import Data.ByteString (ByteString)
@@ -26,8 +28,14 @@ emptyShortEvents = ShortEvents S.empty
 insertShortEvent :: ShortEvent -> ShortEvents -> ShortEvents
 insertShortEvent se (ShortEvents s) = ShortEvents $ s S.|> se 
 
+toVector :: ShortEvents -> V.Vector ShortEvent
+toVector = V.accum add accumVector . map withIndex . toList . shortEvents
+
+toVectorScore :: ShortEvents -> V.Vector Score
+toVectorScore = V.map decodeScore . toVector
+
 compressShortEvents :: ShortEvents -> ShortEvents
-compressShortEvents se = ShortEvents . S.fromList . filter (/= emptyShortEvent) . V.toList $ V.accum add accumVector (map withIndex . toList . shortEvents $ se) 
+compressShortEvents = ShortEvents . S.fromList . filter (/= emptyShortEvent) . V.toList . toVector
 
 instance Eq ShortEvents where
   (==) sa sb = cleanSeq sa == cleanSeq sb 

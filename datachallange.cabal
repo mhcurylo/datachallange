@@ -24,6 +24,7 @@ library
                      , Type.PlayerIds
                      , Type.Scores
                      , Type.ScoreIndex
+                     , Type.ScoreContainer
                      , Type.ShortEvent
                      , Type.ShortEvents
                      , Type.Top10

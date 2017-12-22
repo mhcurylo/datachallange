@@ -31,7 +31,7 @@ prop_toVector_preserves_ids :: [Player] -> Bool
 prop_toVector_preserves_ids ps = cps == V.toList pidsv  
   where
   cps = S.toList . S.fromList $ ps
-  pidsv = toPlayerIdsVector $ foldl' (flip insertPlayer) emptyPlayerIds cps 
+  pidsv = toPlayerVector $ foldl' (flip insertPlayer) emptyPlayerIds cps 
   
 
 spec :: Spec

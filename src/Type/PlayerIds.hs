@@ -4,7 +4,7 @@ module Type.PlayerIds (
   emptyPlayerIds,
   insertPlayer,
   playerId,
-  toPlayerIdsVector,
+  toPlayerVector,
   arbitraryPID
 ) where
 
@@ -13,7 +13,7 @@ import Data.ByteString (ByteString)
 
 import Data.Word (Word32)
 import Data.Tuple (swap)
-import Control.Arrow (second)
+import Control.Arrow (second, first)
 import Test.QuickCheck
 import qualified Data.Vector as V
 import qualified Data.HashMap.Strict as H
@@ -41,5 +41,5 @@ insertPlayer p = fst . playerId p
 
 emptyPlayerIds = PlayerIds H.empty 0
 
-toPlayerIdsVector :: PlayerIds -> V.Vector Player 
-toPlayerIdsVector (PlayerIds pti i) = (V.replicate (fromIntegral i) playerZero) V.// (map (first fromIntegral . swap) $ H.toList pti)
+toPlayerVector :: PlayerIds -> V.Vector Player 
+toPlayerVector (PlayerIds pti i) = V.replicate (fromIntegral i) playerZero V.// (map (first fromIntegral . swap) $ H.toList pti)
