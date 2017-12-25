@@ -16,7 +16,7 @@ import Data.List (concatMap)
 import qualified Data.Vector as V
 import qualified Data.Sequence as S
 
-bufferLength = 4096
+bufferLength = 100000
 maxPlayers = 100000
 
 data ScoreContainer = ScoreContainer { 
