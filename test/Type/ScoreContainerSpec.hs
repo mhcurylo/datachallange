@@ -4,25 +4,39 @@ module Type.ScoreContainerSpec (main, spec) where
 
 import Test.Hspec 
 import Test.QuickCheck
+import Test.QuickCheck.Monadic
 
 import Type.ShortEvent
+import Type.ScoreContainer
 import Type.PlayerIds (PID, arbitraryPID)
 import Type.Score
 
+import Control.Monad
+import qualified Data.Vector as V
+
+
 main :: IO ()
 main = hspec spec
+prop_insert_sums_scores :: [Score] -> Property
+prop_insert_sums_scores sss = monadicIO $ do
+  pid <- pick arbitraryPID
+  sc <- run $ baseSC
+  run $ forM ss (\s ->
+    insertPScore (pid, s) sc)
+  res <- run $ V.freeze (vsc sc)
+  assert $ (sum . map (Score . fromIntegral) $ V.toList res) == sum ss
 
-prop_compress_decompress_identity :: PID -> Score -> Bool
-prop_compress_decompress_identity p s = (p, s) == (decompress $ compress p s)
-
-prop_add_adds_score_values :: PID -> Score -> Score -> Bool
-prop_add_adds_score_values p s1 s2 = s1 + s2 == (snd . decompress $ (add (compress p s1) (compress p s2)))
-
-prop_add_emptyShortEvent_identity :: ShortEvent -> Bool
-prop_add_emptyShortEvent_identity s = s == add emptyShortEvent s
+prop_sumScores_sums_across_SCs :: [Score] -> Property
+prop_sumScores_sums_across_SCs ss = monadicIO $ do
+    pid <-  pick arbitraryPID
+    scoreContainers <- run $ forM ss (\s -> do
+      sc <- baseSC
+      insertPScore (pid, s) sc
+      return sc) 
+    scores <- run $ sumScores scoreContainers
+    assert $ (scores V.! fromIntegral pid) == sum ss
 
 spec :: Spec
 spec = do
-  it "Compress . decompress form identity" $ property $ forAll arbitraryPID prop_compress_decompress_identity 
-  it "Add adds scores" $ property $ forAll arbitraryPID prop_add_adds_score_values
-  it "Add emptyScoreEvent is identity" $ property $ forAll arbitraryShortEvent prop_add_emptyShortEvent_identity 
+  it "Insert scores sums the scores on single PIDs" $ property $ prop_insert_sums_scores
+  it "SumScores sums scores across SCs" $ property $ prop_sumScores_sums_across_SCs

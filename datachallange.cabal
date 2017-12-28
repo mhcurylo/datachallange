@@ -98,6 +98,7 @@ test-suite datachallange-test
                      , Type.PlayerIdsSpec
                      , Type.ShortEventSpec
                      , Type.ShortEventsSpec
+                     , Type.ScoreContainerSpec
   build-depends:       base
                      , datachallange
                      , hspec
