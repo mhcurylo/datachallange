@@ -26,10 +26,10 @@ processHttp :: (MonadResource m, MonadThrow m) => Scores -> [Request] -> Conduit
 processHttp scores fs = sequenceSources (fmap (\f -> httpSource f getResponseBody .| parseFile) fs) 
                .| filterE (olderThan (sDate scores))
                .| concatC
-               .| sinkFold scoresInsert scores id
+               .| foldM (\s p -> liftIO (scoresInsert s p)) scores
 
 scoreFiles :: (MonadResource m, MonadThrow m) => Date -> [String] -> ConduitM () Void m Scores
 scoreFiles d fs = sequenceSources (fmap (\f -> sourceFileBS f .| parseFile) fs) 
                .| filterE (olderThan d)
                .| concatC
-               .| sinkFold scoresInsert (emptyScoresFrom d) id
+               .| foldM (\s p -> liftIO (scoresInsert s p)) (emptyScoresFrom d)

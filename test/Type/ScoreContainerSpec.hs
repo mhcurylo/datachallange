@@ -18,7 +18,7 @@ import qualified Data.Vector as V
 main :: IO ()
 main = hspec spec
 prop_insert_sums_scores :: [Score] -> Property
-prop_insert_sums_scores sss = monadicIO $ do
+prop_insert_sums_scores ss = monadicIO $ do
   pid <- pick arbitraryPID
   sc <- run $ baseSC
   run $ forM ss (\s ->

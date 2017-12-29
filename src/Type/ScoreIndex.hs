@@ -14,6 +14,7 @@ import Data.ByteString (ByteString)
 import Data.Monoid
 import Data.Maybe
 import Control.Monad
+import Control.Applicative
 import qualified Data.Vector as V
 import qualified Data.Sequence as S
 import qualified Data.HashMap.Strict as H
@@ -22,14 +23,21 @@ bufferLength = 4096
 
 newtype ScoreIndex = ScoreIndex {
   scoreDay :: H.HashMap Date ScoreContainer 
-} deriving (Show, Eq)
+} deriving (Show)
 
 emptyScoreIndex = ScoreIndex H.empty
 
-insertPIDScoreAtDate :: Date -> PID -> Score -> ScoreIndex -> ScoreIndex
-insertPIDScoreAtDate d p s (ScoreIndex sd) = ScoreIndex $ H.alter updateWithPlayScore d sd
-  where
-  updateWithPlayScore = Just . insertPIDScore (p, s) . fromMaybe emptyScoreContainer 
-
-getScores :: Date -> ScoreIndex -> ScoreContainer
-getScores d (ScoreIndex si) = fromMaybe emptyScoreContainer (H.lookup d si)
+insertPIDScoreAtDate :: Date -> PID -> Score -> ScoreIndex -> IO ScoreIndex
+insertPIDScoreAtDate d p s si@(ScoreIndex sd) = case H.lookup d sd of
+    Just sc -> do 
+      insertPScore (p, s) sc
+      return si 
+    Nothing -> do
+      sc <- baseScoreContainer 
+      insertPScore (p, s) sc
+      return $ ScoreIndex $ H.insert d sc sd
+  
+getScores :: Date -> ScoreIndex -> IO ScoreContainer
+getScores d (ScoreIndex si) = case H.lookup d si of
+  Just sc -> return sc
+  Nothing -> baseScoreContainer

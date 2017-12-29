@@ -52,8 +52,15 @@ emptyTop10 = Top10 $ []
 instance ToJSON Top10 where
   toJSON (Top10 s) = object [ "top10" .= s]
 
-lastTenDays :: Date -> ScoreIndex -> V.Vector Score
-lastTenDays d si = concatToScoreVector . map (flip getScores $ si) $ [d..(addDays 10 d)]
+lastTenDays :: Date -> ScoreIndex -> IO (V.Vector Score)
+lastTenDays d si = mapM (flip getScores $ si) [d..(addDays 10 d)] >>= sumScores
 
-latestScores :: Scores -> Top10 
-latestScores  (Scores d pid si) = Top10 . take 10 . sort . V.toList . V.map SimpleScore $ V.zip (lastTenDays d si) (toPlayerVector pid)
+latestScores :: Scores -> IO Top10 
+latestScores  (Scores d pid si) = do
+  let p = toPlayerVector pid
+  s <- lastTenDays d si
+  let simple = V.map SimpleScore $ V.zip s p
+  simple' <- V.unsafeThaw simple
+  V.partialSortBy (flip compare) simple' 20
+  sorted <- V.unsafeFreeze simple'
+  return $ Top10 (V.toList . V.take 10 $ sorted)

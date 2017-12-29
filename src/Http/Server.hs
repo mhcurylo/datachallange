@@ -40,7 +40,7 @@ inputEP state fs = do
   scores <- liftIO $ takeMVar state 
   newScores <- runResourceT $ runCConduit $ processHttp scores requests 
   liftIO $ putMVar state newScores
-  return $ latestScores newScores
+  liftIO $ latestScores newScores
 
 dateEP :: ServerState -> Maybe Date -> Handler Top10
 dateEP state current = case current of
@@ -48,7 +48,7 @@ dateEP state current = case current of
     scores <- liftIO $ takeMVar state 
     let newScores = updateDate d scores
     liftIO $ putMVar state newScores
-    return $ latestScores newScores
+    liftIO $ latestScores newScores
   Nothing -> fail "I need a date, OK?"
 
 app :: IO Application
