@@ -24,8 +24,11 @@ data Scores = Scores {
   , sScores:: ScoreIndex
 } deriving (Show) 
 
-emptyScoresFrom :: Date -> Scores
-emptyScoresFrom d = Scores d emptyPlayerIds emptyScoreIndex 
+emptyScoresFrom :: Date -> IO Scores
+emptyScoresFrom d = do
+  epi <- emptyPlayerIds
+  return $ Scores d epi emptyScoreIndex 
+
 emptyScores = emptyScoresFrom defaultDate
 
 updateDate :: Date -> Scores -> Scores
@@ -35,6 +38,6 @@ scoresInsert :: Scores -> Play -> IO Scores
 scoresInsert scores@(Scores dat ids scr) (Play p s d) 
   | d < dat =return scores
   | otherwise = do
-    let (newIds, pid) = playerId p ids
+    (newIds, pid) <- playerId p ids
     newScrs <- insertPIDScoreAtDate d pid s scr
     return $ Scores dat newIds newScrs

@@ -16,7 +16,8 @@ import Data.Tuple (swap)
 import Control.Arrow (second, first)
 import Test.QuickCheck
 import qualified Data.Vector as V
-import qualified Data.HashMap.Strict as H
+import qualified Data.Vector.Mutable as VM
+import qualified Data.HashTable.IO as H
 
 maxPlayers = 100000
 maxDays = 100
@@ -27,19 +28,31 @@ arbitraryPID :: Gen PID
 arbitraryPID = choose (0, 100000)
 
 data PlayerIds = PlayerIds {
-    playerToId :: H.HashMap Player PID
+    playerToId :: H.BasicHashTable Player PID
   , freeIds  :: PID
-} deriving (Show, Eq)
+} deriving (Show)
 
-playerId :: Player -> PlayerIds -> (PlayerIds, PID)
-playerId p ids@(PlayerIds pti i) = case H.lookup p pti of
-  Just id -> (ids, id)
-  Nothing -> (PlayerIds (H.insert p i pti) (i + 1), i) 
+playerId :: Player -> PlayerIds -> IO (PlayerIds, PID)
+playerId p ids@(PlayerIds pti i) = do
+  v <- H.lookup pti p
+  case v of
+    Just id -> return (ids, id)
+    Nothing -> do
+      H.insert pti p i 
+      return (PlayerIds pti (i + 1), i) 
 
-insertPlayer :: Player -> PlayerIds -> PlayerIds
-insertPlayer p = fst . playerId p
+insertPlayer :: Player -> PlayerIds -> IO PlayerIds
+insertPlayer p pids = do
+  (pids, pid) <- playerId p pids
+  return pids
 
-emptyPlayerIds = PlayerIds H.empty 0
+emptyPlayerIds :: IO PlayerIds
+emptyPlayerIds = do
+  hashTable <- H.newSized maxPlayers
+  return $ PlayerIds hashTable 0
 
-toPlayerVector :: PlayerIds -> V.Vector Player 
-toPlayerVector (PlayerIds pti i) = V.replicate (fromIntegral i) playerZero V.// (map (first fromIntegral . swap) $ H.toList pti)
+toPlayerVector :: PlayerIds -> IO (V.Vector Player )
+toPlayerVector (PlayerIds pti i) = do
+  vec <- VM.replicate (fromIntegral i) playerZero 
+  H.mapM_ (\(k, v) -> VM.write vec (fromIntegral v) k) pti
+  V.freeze vec

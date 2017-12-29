@@ -30,9 +30,11 @@ type ServerState = MVar Scores
 
 server :: IO (Server DevDataChallengeAPI)
 server = do
-  serverState <- liftIO $ newMVar emptyScores
+  esc <-liftIO $ emptyScores
+  serverState <- liftIO $ newMVar esc
   return $inputEP serverState
        :<|> dateEP serverState
+
 
 inputEP :: ServerState -> Files -> Handler Top10
 inputEP state fs = do 

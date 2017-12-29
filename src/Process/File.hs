@@ -28,8 +28,8 @@ processHttp scores fs = sequenceSources (fmap (\f -> httpSource f getResponseBod
                .| concatC
                .| foldM (\s p -> liftIO (scoresInsert s p)) scores
 
-scoreFiles :: (MonadResource m, MonadThrow m) => Date -> [String] -> ConduitM () Void m Scores
-scoreFiles d fs = sequenceSources (fmap (\f -> sourceFileBS f .| parseFile) fs) 
-               .| filterE (olderThan d)
+scoreFiles :: (MonadResource m, MonadThrow m) => Scores -> [String] -> ConduitM () Void m Scores
+scoreFiles scores fs = sequenceSources (fmap (\f -> sourceFileBS f .| parseFile) fs) 
+               .| filterE (olderThan (sDate scores))
                .| concatC
-               .| foldM (\s p -> liftIO (scoresInsert s p)) (emptyScoresFrom d)
+               .| foldM (\s p -> liftIO (scoresInsert s p)) scores 

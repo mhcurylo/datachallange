@@ -43,6 +43,7 @@ library
                      , stm-conduit
                      , http-conduit
                      , hashable
+                     , hashtables
                      , bytestring
                      , attoparsec
                      , QuickCheck

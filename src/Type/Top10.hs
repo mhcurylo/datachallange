@@ -57,7 +57,7 @@ lastTenDays d si = mapM (flip getScores $ si) [d..(addDays 10 d)] >>= sumScores
 
 latestScores :: Scores -> IO Top10 
 latestScores  (Scores d pid si) = do
-  let p = toPlayerVector pid
+  p <- toPlayerVector pid
   s <- lastTenDays d si
   let simple = V.map SimpleScore $ V.zip s p
   simple' <- V.unsafeThaw simple
