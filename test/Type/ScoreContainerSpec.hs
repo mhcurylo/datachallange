@@ -20,17 +20,17 @@ main = hspec spec
 prop_insert_sums_scores :: [Score] -> Property
 prop_insert_sums_scores ss = monadicIO $ do
   pid <- pick arbitraryPID
-  sc <- run $ baseSC
+  sc <- run $ baseScoreContainer
   run $ forM ss (\s ->
     insertPScore (pid, s) sc)
   res <- run $ V.freeze (vsc sc)
   assert $ (sum . map (Score . fromIntegral) $ V.toList res) == sum ss
 
-prop_sumScores_sums_across_SCs :: [Score] -> Property
-prop_sumScores_sums_across_SCs ss = monadicIO $ do
+prop_sumScores_sums_across_ScoreContainers :: [Score] -> Property
+prop_sumScores_sums_across_ScoreContainers ss = monadicIO $ do
     pid <-  pick arbitraryPID
     scoreContainers <- run $ forM ss (\s -> do
-      sc <- baseSC
+      sc <- baseScoreContainer
       insertPScore (pid, s) sc
       return sc) 
     scores <- run $ sumScores scoreContainers
@@ -39,4 +39,4 @@ prop_sumScores_sums_across_SCs ss = monadicIO $ do
 spec :: Spec
 spec = do
   it "Insert scores sums the scores on single PIDs" $ property $ prop_insert_sums_scores
-  it "SumScores sums scores across SCs" $ property $ prop_sumScores_sums_across_SCs
+  it "SumScores sums scores across ScoreContainers" $ property $ prop_sumScores_sums_across_ScoreContainers
