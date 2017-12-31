@@ -1,6 +1,6 @@
 module Type.ScoreIndex (
      ScoreIndex
-   , insertPIDScoreAtDate  
+   , insertPIDScoreAtIndex 
    , emptyScoreIndex
    , getScores
 ) where
@@ -16,28 +16,19 @@ import Data.Maybe
 import Control.Monad
 import Control.Applicative
 import qualified Data.Vector as V
+import qualified Data.Vector.Mutable as VM
 import qualified Data.Sequence as S
 import qualified Data.HashMap.Strict as H
 
-bufferLength = 4096
-
 newtype ScoreIndex = ScoreIndex {
-  scoreDay :: H.HashMap Date ScoreContainer 
+  scoreDay :: V.Vector ScoreContainer 
 } deriving (Show)
 
-emptyScoreIndex = ScoreIndex H.empty
+emptyScoreIndex :: IO ScoreIndex
+emptyScoreIndex = ScoreIndex <$> V.replicateM 100 baseScoreContainer
 
-insertPIDScoreAtDate :: Date -> PID -> Score -> ScoreIndex -> IO ScoreIndex
-insertPIDScoreAtDate d p s si@(ScoreIndex sd) = case H.lookup d sd of
-    Just sc -> do 
-      insertPScore (p, s) sc
-      return si 
-    Nothing -> do
-      sc <- baseScoreContainer 
-      insertPScore (p, s) sc
-      return $ ScoreIndex $ H.insert d sc sd
-  
-getScores :: Date -> ScoreIndex -> IO ScoreContainer
-getScores d (ScoreIndex si) = case H.lookup d si of
-  Just sc -> return sc
-  Nothing -> baseScoreContainer
+insertPIDScoreAtIndex :: Int -> PID -> Score -> ScoreIndex -> IO () 
+insertPIDScoreAtIndex i p s (ScoreIndex si) = insertPScore (p, s) (si V.! i)
+
+getScores :: Int -> ScoreIndex -> ScoreContainer
+getScores i (ScoreIndex si) = si V.! i   

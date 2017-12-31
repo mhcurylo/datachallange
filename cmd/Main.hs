@@ -23,6 +23,6 @@ main :: IO ()
 main = do
   s <- emptyScoresFrom testDate
   a <- getArgs
-  r <- runResourceT $ runCConduit $ scoreFiles s a 
-  t10 <- latestScores r
+  runResourceT $ runCConduit $ scoreFiles s a 
+  t10 <- latestScores s
   print . show $ t10

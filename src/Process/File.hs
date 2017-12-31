@@ -3,6 +3,7 @@
 
 module Process.File where
 
+import           Prelude hiding (mapM_)
 import           Conduit
 import           Data.Conduit.Combinators 
 import           Data.Conduit.Attoparsec (conduitParserEither, PositionRange, ParseError)
@@ -22,14 +23,14 @@ parseFile = conduitParserEither playParserEOL =$= awaitForever nextPlay
               nextPlay (Left s) = error $ show s
               nextPlay (Right (_, p)) = yield $ p
 
-processHttp :: (MonadResource m, MonadThrow m) => Scores -> [Request] -> ConduitM () Void m Scores
+processHttp :: (MonadResource m, MonadThrow m) => Scores -> [Request] -> ConduitM () Void m ()
 processHttp scores fs = sequenceSources (fmap (\f -> httpSource f getResponseBody .| parseFile) fs) 
                .| filterE (olderThan (sDate scores))
                .| concatC
-               .| foldM (\s p -> liftIO (scoresInsert s p)) scores
+               .| mapM_ (\p -> liftIO $ scoresInsert scores p)
 
-scoreFiles :: (MonadResource m, MonadThrow m) => Scores -> [String] -> ConduitM () Void m Scores
+scoreFiles :: (MonadResource m, MonadThrow m) => Scores -> [String] -> ConduitM () Void m ()
 scoreFiles scores fs = sequenceSources (fmap (\f -> sourceFileBS f .| parseFile) fs) 
                .| filterE (olderThan (sDate scores))
                .| concatC
-               .| foldM (\s p -> liftIO (scoresInsert s p)) scores 
+               .| mapM_ (\p -> liftIO $ scoresInsert scores p) 

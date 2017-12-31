@@ -2,6 +2,7 @@
 
 module Type.Date (
   Date,
+  dateIndex,
   parseDate,
   dateParser,
   defaultDate,
@@ -55,6 +56,9 @@ addDays n (Date i) = Date $ i + n
 
 removeDays :: Integer -> Date -> Date
 removeDays n (Date i) = Date $ i - n 
+
+dateIndex :: Date -> Date -> Int
+dateIndex (Date d) = fromIntegral . date  . removeDays d
 
 takeInt :: Int -> Parser Int
 takeInt n = do

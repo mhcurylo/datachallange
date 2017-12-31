@@ -53,7 +53,7 @@ instance ToJSON Top10 where
   toJSON (Top10 s) = object [ "top10" .= s]
 
 lastTenDays :: Date -> ScoreIndex -> IO (V.Vector Score)
-lastTenDays d si = mapM (flip getScores $ si) [d..(addDays 10 d)] >>= sumScores
+lastTenDays d si = return (map (flip getScores $ si) (map (dateIndex d) [d..(addDays 10 d)])) >>= sumScores
 
 latestScores :: Scores -> IO Top10 
 latestScores  (Scores d pid si) = do

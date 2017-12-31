@@ -40,9 +40,9 @@ inputEP :: ServerState -> Files -> Handler Top10
 inputEP state fs = do 
   requests <- mapM parseRequest $ files fs
   scores <- liftIO $ takeMVar state 
-  newScores <- runResourceT $ runCConduit $ processHttp scores requests 
-  liftIO $ putMVar state newScores
-  liftIO $ latestScores newScores
+  runResourceT $ runCConduit $ processHttp scores requests 
+  liftIO $ putMVar state scores
+  liftIO $ latestScores scores
 
 dateEP :: ServerState -> Maybe Date -> Handler Top10
 dateEP state current = case current of

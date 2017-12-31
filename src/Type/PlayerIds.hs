@@ -2,8 +2,7 @@ module Type.PlayerIds (
   PID,
   PlayerIds,
   emptyPlayerIds,
-  insertPlayer,
-  playerId,
+  tslayerId,
   toPlayerVector,
   arbitraryPID
 ) where
@@ -19,40 +18,40 @@ import qualified Data.Vector as V
 import qualified Data.Vector.Mutable as VM
 import qualified Data.HashTable.IO as H
 
+maxPlayers :: Int
 maxPlayers = 100000
 maxDays = 100
 
 type PID = Word32
 
 arbitraryPID :: Gen PID
-arbitraryPID = choose (0, 100000)
+arbitraryPID = choose (0, ((fromIntegral maxPlayers) - 1))
 
 data PlayerIds = PlayerIds {
     playerToId :: H.BasicHashTable Player PID
-  , freeIds  :: PID
-} deriving (Show)
+  , lastId :: VM.IOVector PID
+} 
 
-playerId :: Player -> PlayerIds -> IO (PlayerIds, PID)
-playerId p ids@(PlayerIds pti i) = do
+playerId :: Player -> PlayerIds -> IO PID
+playerId p ids@(PlayerIds pti vi) = do
   v <- H.lookup pti p
   case v of
-    Just id -> return (ids, id)
+    Just id -> return id
     Nothing -> do
+      i <- VM.read vi 0
       H.insert pti p i 
-      return (PlayerIds pti (i + 1), i) 
-
-insertPlayer :: Player -> PlayerIds -> IO PlayerIds
-insertPlayer p pids = do
-  (pids, pid) <- playerId p pids
-  return pids
+      VM.write vi 0 (i + 1)
+      return i 
 
 emptyPlayerIds :: IO PlayerIds
 emptyPlayerIds = do
   hashTable <- H.newSized maxPlayers
-  return $ PlayerIds hashTable 0
+  vi <- VM.replicate 1 (fromIntegral 0)
+  return $ PlayerIds hashTable vi
 
 toPlayerVector :: PlayerIds -> IO (V.Vector Player )
-toPlayerVector (PlayerIds pti i) = do
+toPlayerVector (PlayerIds pti vi) = do
+  i <- VM.read vi 0
   vec <- VM.replicate (fromIntegral i) playerZero 
   H.mapM_ (\(k, v) -> VM.write vec (fromIntegral v) k) pti
-  V.freeze vec
+  V.unsafeFreeze vec
