@@ -78,6 +78,7 @@ executable datachallange-cmd
                      , containers
                      , conduit-combinators
                      , attoparsec
+                     , parallel
                      , text
                      , bytestring
                      , stm-conduit
@@ -118,6 +119,7 @@ test-suite datachallange-test
                      , vector
                      , unordered-containers
                      , attoparsec
+                     , parallel
                      , bytestring
                      , time
                      , text

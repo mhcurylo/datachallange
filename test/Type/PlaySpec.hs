@@ -13,6 +13,9 @@ import Data.Attoparsec.ByteString (parseOnly)
 main :: IO ()
 main = hspec spec
 
+prop_parsePlay_print_identity :: Play -> Bool
+prop_parsePlay_print_identity  p = (parsePlay . pack . show $ p) == p
+
 prop_parse_print_identity :: Play -> Bool
 prop_parse_print_identity  p = (parseOnly playParser . pack . show $ p) == (Right p)
 
@@ -24,6 +27,7 @@ prop_olderThan_checks_date_ord d p = (pDate p >= d) == olderThan d p
 
 spec :: Spec
 spec = do
+  it "Show and parsePlay from identity" $ property prop_parsePlay_print_identity
   it "Show and parse form indentity" $ property prop_parse_print_identity
   it "(++ \\n) . show and parseEOL form indentity" $ property prop_parse_print_identity
   it "olderThan checks if date is older than pDate" $ property prop_olderThan_checks_date_ord 

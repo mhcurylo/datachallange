@@ -21,7 +21,7 @@ import Type.ScoreIndex
 import Data.Tuple (swap)
 import Data.List (foldl', sort)
 import Data.Foldable (toList)
-import Data.ByteString (ByteString)
+import Data.ByteString.Lazy.Char8 (ByteString, toStrict)
 import Data.Text.Encoding (decodeUtf8)
 import Control.Monad
 import Control.Monad.Primitive
@@ -40,7 +40,7 @@ newtype SimpleScore = SimpleScore {
 } deriving (Show, Eq, Ord)
 
 instance ToJSON SimpleScore where 
-  toJSON (SimpleScore (s, p)) = object [ decodeUtf8 (player p) .= (score s) ]
+  toJSON (SimpleScore (s, p)) = object [ decodeUtf8 (toStrict . player $ p) .= (score s) ]
 
 newtype Top10 = Top10 {
   top10 :: [SimpleScore]

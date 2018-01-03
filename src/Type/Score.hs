@@ -2,8 +2,8 @@
 {-# LANGUAGE OverloadedStrings        #-}
 
 module Type.Score (
-  Score(..),
-  scoreParser
+    Score(..)
+  , scoreParser
 ) where
 
 import Data.ByteString.Char8 (readInt)

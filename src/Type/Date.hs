@@ -6,6 +6,7 @@ module Type.Date (
   parseDate,
   dateParser,
   defaultDate,
+  dateFromGregorian,
   testDate,
   addDays,
   removeDays
