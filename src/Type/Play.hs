@@ -1,5 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings        #-}
+{-# LANGUAGE BangPatterns        #-}
 
 module Type.Play (
   Play(..),
@@ -25,9 +26,9 @@ import qualified Data.ByteString.Lazy.Char8 as BLC
 import qualified Data.ByteString.Char8 as BC
 
 data Play = Play {
-    pPlayer :: Player
-  , pScore  :: Score  
-  , pDate   :: Date 
+    pPlayer :: !Player
+  , pScore  :: !Score  
+  , pDate   :: !Date 
 } deriving (Eq)
 
 instance Show Play where
@@ -60,12 +61,12 @@ parsePlays s = if BLC.null r'
 parseP :: BLC.ByteString -> (Play, BLC.ByteString)
 parseP s = (Play (Player a) (Score b) (dateFromGregorian y m d), ys)
   where
-  (a,as) = breakComma s
+  !(a,as) = breakComma s
   as' = BLC.tail as
-  (b,bs) = fromJust $ BLC.readInt as'
-  (d,ds) = fromJust $ BLC.readInt (BLC.tail bs)
-  (m,ms) = fromJust $ BLC.readInt (BLC.tail ds)
-  (y,ys) = fromJust $ BLC.readInteger (BLC.tail ms)
+  !(b,bs) = fromJust $ BLC.readInt as'
+  !(d,ds) = fromJust $ BLC.readInt (BLC.tail bs)
+  !(m,ms) = fromJust $ BLC.readInt (BLC.tail ds)
+  !(y,ys) = fromJust $ BLC.readInteger (BLC.tail ms)
 
 
 parsePlay :: BLC.ByteString -> Play
