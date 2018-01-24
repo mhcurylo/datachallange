@@ -1,52 +1,114 @@
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE OverloadedStrings        #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE BangPatterns #-}
+{-# LANGUAGE DeriveGeneric, DeriveAnyClass #-}
 
-module Type.Play (
-  Play(..),
-  olderThan,
-  playParser,
-  playParserEOL
-) where
+module Type.Play where
 
-import Type.Date
-import Type.Player
-import Type.Score
-import Data.List (intersperse)
-import Data.Attoparsec.ByteString (Parser, word8) 
-import Test.QuickCheck (Gen, listOf1, elements, Arbitrary, arbitrary)
+import qualified Data.ByteString.Char8 as B
+import qualified Data.Conduit.Binary as C
+import qualified Data.Time.Calendar as T
+import qualified Data.HashMap.Strict as HM
+import Data.Text.Encoding (encodeUtf8)
+import Web.HttpApiData (FromHttpApiData, parseQueryParam)
+import Data.Maybe (fromJust)
+import Data.List (maximum, zip3)
+import Data.Text (Text, pack)
+import Data.Text.Encoding (encodeUtf8)
+import Conduit
 
 data Play = Play {
-    pPlayer :: Player
-  , pScore  :: Score  
-  , pDate   :: Date 
-} deriving (Eq)
+    file   :: !Int
+  , date   :: !Int
+  , player :: !B.ByteString
+  , score  :: !Int
+} deriving (Show, Eq, Ord)
 
-instance Show Play where
-  show (Play p s d) = concat $ intersperse ","  [show p, show s, show d]
+-- FUNCTIONS FOR CALCULATING DATE AS DAYS FROM
 
-instance Arbitrary Play where
-  arbitrary = do
-    p <- arbitrary 
-    s <- arbitrary
-    d <- arbitrary
-    return $ Play p s d
+type DayOfYear = (Int, Int, Int)
 
-eol = word8 10
+dayZero = "01-01-2010"
 
-olderThan :: Date -> Play -> Bool
-olderThan dat (Play _ _ d) = d >= dat
+dayZeroT = (1, 1, 2010)
 
-playParserEOL :: Parser Play
-playParserEOL = do
-  p <- playParser  
-  _ <- eol 
-  return $ p
+nonLeap = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31]
+leap = 31 : 29 : drop 2 nonLeap
 
-playParser :: Parser Play
-playParser = do
-  p <- playerParser
-  _ <- word8 44
-  s <- scoreParser
-  _ <- word8 44
-  d <- dateParser
-  return $ Play p s d
+yearLength y = if isLeapYear y 
+                then leapYearLength
+                else nonLeapYearLength
+
+nonLeapYearLength = sum nonLeap
+leapYearLength = nonLeapYearLength - 1
+
+divisableBy x y = y `div` x == 0
+isLeapYear x = r
+  where 
+  divBy y = y `div` x == 0
+  !r = (divBy 4 || ((not $ divBy 100) || (divBy 400))) 
+
+monthLength y m = if isLeapYear y
+                    then leap !! (m - 1)
+                    else nonLeap !! (m - 1)
+
+daysFromDay :: DayOfYear -> DayOfYear -> Int 
+daysFromDay (d, m, y) (d', m', y') = dd + dm + dy
+  where
+  !dy = sum $ map yearLength [2010..(y' - 1)]
+  !dm = sum $ map (monthLength y) [1..(m' - 1 )]
+  !dd = d' - d
+
+day = daysFromDay dayZeroT
+
+allDays = (1, 1, 2010) : map nextDay allDays
+  where
+  nextDay (d, m, y)
+    | d == 31 && m == 12 = (1, 1, y + 1)
+    | d == monthLength y m = (1, m + 1, y)
+    | otherwise = (d + 1, m, y)
+
+dayHMap :: HM.HashMap B.ByteString Int
+dayHMap = dm
+  where
+  ensure2 bs = if B.length bs == 1 
+                  then B.cons '0' bs
+                  else bs
+  toKV dat@(d, m, y) = (B.intercalate "-" $ map (ensure2 . B.pack . show) [d,m,y], day dat)
+  !dm = HM.fromList $ map toKV $ take 30000 allDays
+
+dayHM d = case HM.lookup d dayHMap of
+  (Just r) -> r
+  Nothing -> undefined 
+
+-- END OF DATE CALCULATION
+
+-- NEWTYPE DATE FOR HTTP PARSING
+
+newtype Date = Date {
+  httpDate :: Int
+} deriving (Eq, Ord)
+
+
+parseDateT :: Text -> Either Text Date
+parseDateT = Right . Date . parseDate . encodeUtf8
+
+instance FromHttpApiData Date where
+  parseQueryParam = parseDateT
+
+--
+
+parseDate :: B.ByteString -> Int
+parseDate bs = i
+  where
+  (v,vs) = B.break (=='\n') bs 
+  !i = dayHM v
+
+parsePlay :: Int -> B.ByteString -> Play
+parsePlay f s = Play f d p sc
+  where
+  !(p,as) = B.break (==',') s
+  !as' = B.tail as
+  !(sc,bs) = fromJust $ B.readInt as'
+  !d = parseDate (B.tail bs)
+
+emptyPlay = Play 0 0 "" 0

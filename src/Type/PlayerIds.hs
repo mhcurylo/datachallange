@@ -2,7 +2,7 @@ module Type.PlayerIds (
   PID,
   PlayerIds,
   emptyPlayerIds,
-  tslayerId,
+  playerId,
   toPlayerVector,
   arbitraryPID
 ) where

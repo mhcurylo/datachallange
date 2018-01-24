@@ -9,36 +9,40 @@ module Type.Scores (
   updateDate 
 ) where
 
-import Type.Date
-import Type.Score
-import Type.Player 
 import Type.Play
-import Type.PlayerIds
+import Type.Id
+import Type.FileData
+import Type.Acc
 import Type.ScoreIndex
 import Data.ByteString (ByteString)
 import Control.Monad
+import Control.Applicative ((<*>), (<$>))
+
+import qualified Data.Vector.Mutable as VM
+import qualified Data.Vector.Unboxed.Mutable as VUM
 
 data Scores = Scores {
-    sDate :: !Date
-  , sPlayerIds :: PlayerIds
-  , sScores:: ScoreIndex
+    scDate :: Int
+  , scPlayerIds :: Id 
+  , scFileIds :: Id 
+  , scFileData :: FDV 
+  , scScores :: VV 
 } 
 
-emptyScoresFrom :: Date -> IO Scores
-emptyScoresFrom d = do
-  epi <- emptyPlayerIds
-  esi <- emptyScoreIndex
-  return $ Scores d epi esi 
+emptyScoresFrom :: Int -> IO Scores
+emptyScoresFrom d = Scores d <$> emptyPid <*> emptyFid <*> emptyFDV <*> emptyVector
 
-emptyScores = emptyScoresFrom defaultDate
+emptyScores = emptyScoresFrom 0
 
-updateDate :: Date -> Scores -> Scores
-updateDate newDate scores = scores {sDate = removeDays 10 newDate } 
+updateDate :: Int -> Scores -> IO Scores
+updateDate nd s = do
+  v <- emptyVector
+  return $ s {scDate = (nd - 10), scScores = v} 
 
 scoresInsert :: Scores -> Play -> IO ()
-scoresInsert scores@(Scores dat ids scr) (Play p s d) 
-  | d < dat = return () 
-  | otherwise = do
-    let i = dateIndex dat d
-    pid <- playerId p ids
-    insertPIDScoreAtIndex i pid s scr
+scoresInsert sc@(Scores cd pid _ fdv vv) pl@(Play f d p s) = if (d < cd)
+  then return ()
+  else do
+    fdvUpdate f d fdv
+    !dps <- getPid pid pl
+    addDPSV cd vv dps 
