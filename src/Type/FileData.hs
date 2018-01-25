@@ -27,8 +27,6 @@ fdvValue = do
 emptyFDV :: IO FDV
 emptyFDV = VM.replicateM 102 fdvValue 
 
-sDate = dayHM "01-01-2016"
-
 laterThan :: Int -> Play -> Bool
 laterThan cd (Play _ _ _ d) = d > (cd + 99)
 

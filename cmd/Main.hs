@@ -4,8 +4,8 @@
 module Main where
 
 import Process.File
-import Type.Date
 import Type.Play
+import Type.Acc
 import Type.Scores
 import Type.Top10
 import System.Environment (getArgs)
@@ -21,7 +21,7 @@ import qualified Data.ByteString.Char8 as B
 
 main :: IO ()
 main = do
-  s <- emptyScoresFrom testDate
+  s <- emptyScoresFrom sDate
   a <- getArgs
   runResourceT $ runCConduit $ scoreFiles s a 
   t10 <- latestScores s

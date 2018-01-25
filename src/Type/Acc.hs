@@ -10,15 +10,15 @@ import Conduit as CON
 import Type.Play
 import Type.Id 
 
-type VV = VUM.IOVector Int
+type VV = VM.IOVector Int
 
 emptyVector :: IO VV
-emptyVector = VUM.replicate 100000 0 
+emptyVector = VM.replicate 100000 0 
 
 sDate = dayHM "01-01-2017"
 
 addDPSV :: Int -> VV -> DPS -> IO ()
 addDPSV cd v (d, p, s) = if (d > cd + 10) || (d < cd)
   then return ()
-  else VUM.write v p s
+  else VM.unsafeModify v (+ p) s
 
