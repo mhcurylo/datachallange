@@ -17,16 +17,10 @@ library
   hs-source-dirs:      src
   other-modules:       Http.Servant
   exposed-modules:     Type.API
-                     , Type.Date
-                     , Type.Score
-                     , Type.Player
                      , Type.Play
-                     , Type.PlayerIds
+                     , Type.Id
+                     , Type.Acc
                      , Type.Scores
-                     , Type.ScoreIndex
-                     , Type.ScoreContainer
-                     , Type.ShortEvent
-                     , Type.ShortEvents
                      , Type.Top10
                      , Http.Server
                      , Process.File

@@ -10,7 +10,7 @@ module Type.API (
   emptyTop10
 ) where
 
-import Type.Date (Date)
+import Type.Play (Date)
 import Type.Top10 (Top10, emptyTop10)
 import Data.Aeson (FromJSON, parseJSON)
 import Data.Aeson.TH (deriveJSON, defaultOptions)

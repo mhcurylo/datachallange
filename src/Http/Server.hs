@@ -12,6 +12,7 @@ import           Http.Servant
 import           Type.API
 import           Type.Scores
 import           Type.Top10
+import           Type.Play
 import           Process.File
 import           Data.Proxy
 import           Data.Text                  (Text)
@@ -40,7 +41,7 @@ inputEP :: ServerState -> Files -> Handler Top10
 inputEP state fs = do 
   requests <- mapM parseRequest $ files fs
   scores <- liftIO $ takeMVar state 
-  runResourceT $ runCConduit $ processHttp scores requests 
+  runResourceT $ processHttp scores requests 
   liftIO $ putMVar state scores
   liftIO $ latestScores scores
 
@@ -48,7 +49,7 @@ dateEP :: ServerState -> Maybe Date -> Handler Top10
 dateEP state current = case current of
   Just d -> do
     scores <- liftIO $ takeMVar state 
-    let newScores = updateDate d scores
+    newScores <- liftIO $ updateDate (httpDate d) scores
     liftIO $ putMVar state newScores
     liftIO $ latestScores newScores
   Nothing -> fail "I need a date, OK?"

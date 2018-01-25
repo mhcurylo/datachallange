@@ -13,7 +13,6 @@ import Type.Play
 import Type.Id
 import Type.FileData
 import Type.Acc
-import Type.ScoreIndex
 import Data.ByteString (ByteString)
 import Control.Monad
 import Control.Applicative ((<*>), (<$>))
@@ -40,7 +39,7 @@ updateDate nd s = do
   return $ s {scDate = (nd - 10), scScores = v} 
 
 scoresInsert :: Scores -> Play -> IO ()
-scoresInsert sc@(Scores cd pid _ fdv vv) pl@(Play f d p s) = if (d < cd)
+scoresInsert (Scores cd pid _ fdv vv) pl@(Play f d p s) = if (d < cd)
   then return ()
   else do
     fdvUpdate f d fdv

@@ -8,16 +8,9 @@ module Type.Top10 (
   , latestScores
 ) where
 
-import Type.Date
 import Type.Play
-import Type.Score
-import Type.Player
-import Type.PlayerIds
 import Type.Scores
-import Type.ShortEvent
-import Type.ShortEvents
-import Type.ScoreContainer
-import Type.ScoreIndex
+import Type.Id
 import Data.Tuple (swap)
 import Data.List (foldl', sort)
 import Data.Foldable (toList)
@@ -36,11 +29,11 @@ import Data.Ord
 import Data.List (sort)
 
 newtype SimpleScore = SimpleScore {
-  simpleScore :: (Score, Player)
+  simpleScore :: (Int, ByteString)
 } deriving (Show, Eq, Ord)
 
 instance ToJSON SimpleScore where 
-  toJSON (SimpleScore (s, p)) = object [ decodeUtf8 (player p) .= (score s) ]
+  toJSON (SimpleScore (s, p)) = object [ decodeUtf8 p .= s ]
 
 newtype Top10 = Top10 {
   top10 :: [SimpleScore]
@@ -52,13 +45,10 @@ emptyTop10 = Top10 $ []
 instance ToJSON Top10 where
   toJSON (Top10 s) = object [ "top10" .= s]
 
-lastTenDays :: Date -> ScoreIndex -> IO (V.Vector Score)
-lastTenDays d si = return (map (flip getScores $ si) (map (dateIndex d) [d..(addDays 10 d)])) >>= sumScores
-
 latestScores :: Scores -> IO Top10 
-latestScores  (Scores d pid si) = do
-  p <- toPlayerVector pid
-  s <- lastTenDays d si
+latestScores (Scores cd pid fid fdv vv) = do
+  p <- toIdVector pid
+  s <- V.freeze vv
   let simple = V.map SimpleScore $ V.zip s p
   simple' <- V.unsafeThaw simple
   V.partialSortBy (flip compare) simple' 20
