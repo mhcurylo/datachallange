@@ -41,7 +41,7 @@ inputEP :: ServerState -> Files -> Handler Top10
 inputEP state fs = do 
   requests <- mapM parseRequest $ files fs
   scores <- liftIO $ takeMVar state 
-  runResourceT $ runCConduit $ processHttp scores requests 
+  runResourceT $ runConduit $ processHttp scores requests 
   liftIO $ putMVar state scores
   liftIO $ latestScores scores
 
