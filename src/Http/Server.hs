@@ -33,7 +33,7 @@ server :: IO (Server DevDataChallengeAPI)
 server = do
   esc <-liftIO $ emptyScores
   serverState <- liftIO $ newMVar esc
-  return $inputEP serverState
+  return $ inputEP serverState
        :<|> dateEP serverState
 
 
