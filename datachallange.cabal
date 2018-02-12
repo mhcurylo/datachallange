@@ -102,7 +102,6 @@ test-suite datachallange-test
                      , Type.PlayerSpec
                      , Type.ScoreSpec
                      , Type.PlaySpec
-                     , Type.PlayerIdsSpec
                      , Type.ShortEventSpec
                      , Type.ShortEventsSpec
                      , Type.ScoreContainerSpec
